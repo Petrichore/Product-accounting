@@ -1,0 +1,3 @@
+Product{id=1573497280710, name='Машина', price=30.0, receiptDate=12/11/2018, category='Машины'}
+Product{id=131200032, name='Мишка', price=20.0, receiptDate=13/11/2018, category='Мягкие игрушки'}
+Product{id=1573497301634, name='Крыса', price=50.0, receiptDate=22/11/2019, category='Мягкие игрушки'}
