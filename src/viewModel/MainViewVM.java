@@ -58,10 +58,20 @@ public class MainViewVM {
         Optional<Product> optionalProduct = repository.getProductById(productId);
         if (optionalProduct.isPresent()) {
             Product product = optionalProduct.get();
+
             Dialog<HashMap<String, String>> dialog = DialogManager.getEditProductInputDialog(product);
             Optional<HashMap<String, String>> result = dialog.showAndWait();
-            result.ifPresent(stringStringHashMap -> repository.updateProduct(stringStringHashMap));
-            productsList.setValue(repository.getProductList());
+
+            if(result.isPresent()){
+                HashMap<String,String> inputParams = result.get();
+                boolean isResultValid = Boolean.parseBoolean(inputParams.get(DialogManager.VALIDATION_RESULT));
+                if(isResultValid){
+                    repository.updateProduct(inputParams);
+                    productsList.setValue(repository.getProductList());
+                }
+            }else{
+                //show editDialog with warning and last input data
+            }
         }
     }
 

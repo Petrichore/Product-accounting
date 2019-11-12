@@ -11,6 +11,8 @@ import java.util.List;
 
 public class DialogManager {
 
+    public static final String VALIDATION_RESULT = "validationResult";
+
     public static final String PRODUCT_NAME = "name";
     public static final String PRODUCT_PRICE = "price";
     public static final String PRODUCT_RECEIPT_DATE = "receiptDate";
@@ -21,14 +23,19 @@ public class DialogManager {
     public static final String PRODUCT_EDIT_RECEIPT_DATE = "receiptDateEdit";
     public static final String PRODUCT_ID = "ID";
 
+    private static Dialog<HashMap<String, String>> dialogInstance = null;
+
     public static Dialog<HashMap<String, String>> getAddProductInputDialog(List<String> productTypeList) {
-        Dialog<HashMap<String, String>> dialog = new Dialog<>();
-        dialog.setTitle("Новый продукт");
-        dialog.setHeaderText("Заполните все ячейки, чтобы добавить новый продукт");
+        if (dialogInstance == null) {
+            dialogInstance = new Dialog<>();
+        }
+
+        dialogInstance.setTitle("Новый продукт");
+        dialogInstance.setHeaderText("Заполните все ячейки, чтобы добавить новый продукт");
 
         ButtonType commitAddingBtnType = new ButtonType("Добавить", ButtonBar.ButtonData.APPLY);
         ButtonType cancelAddingBtnType = new ButtonType("Отмена", ButtonBar.ButtonData.CANCEL_CLOSE);
-        dialog.getDialogPane().getButtonTypes().addAll(commitAddingBtnType, cancelAddingBtnType);
+        dialogInstance.getDialogPane().getButtonTypes().addAll(commitAddingBtnType, cancelAddingBtnType);
 
         GridPane gridPane = new GridPane();
         gridPane.setHgap(30);
@@ -54,14 +61,8 @@ public class DialogManager {
         gridPane.add(productPrice, 1, 1);
         gridPane.add(new Label("Дата поступления"), 0, 2);
         gridPane.add(receiptDate, 1, 2);
-        gridPane.add(new Label("Категория товара"),2,0);
-        gridPane.add(categoryComboBox,2,1);
-
-        //Focus on productName field
-        //Platform.runLater(productName::requestFocus);
-
-//        Node commitAddingBtn = dialog.getDialogPane().lookupButton(commitAddingBtnType);
-//        commitAddingBtn.setDisable(true);
+        gridPane.add(new Label("Категория товара"), 2, 0);
+        gridPane.add(categoryComboBox, 2, 1);
 
         productPrice.textProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue.matches("\\d{0,4}([.]\\d{0,2})?")) {
@@ -69,7 +70,7 @@ public class DialogManager {
             }
         });
 
-        dialog.setResultConverter(dialogButton -> {
+        dialogInstance.setResultConverter(dialogButton -> {
             if (dialogButton == commitAddingBtnType) {
                 return new HashMap<>() {{
                     put(PRODUCT_NAME, productName.getText());
@@ -81,18 +82,21 @@ public class DialogManager {
             return null;
         });
 
-        dialog.getDialogPane().setContent(gridPane);
-        return dialog;
+        dialogInstance.getDialogPane().setContent(gridPane);
+        return dialogInstance;
     }
 
     public static Dialog<HashMap<String, String>> getEditProductInputDialog(Product product) {
-        Dialog<HashMap<String, String>> dialog = new Dialog<>();
-        dialog.setTitle("Редактирование продукта");
-        dialog.setHeaderText("Измените необходимые поля");
+        if (dialogInstance == null) {
+            dialogInstance = new Dialog<>();
+        }
+
+        dialogInstance.setTitle("Редактирование продукта");
+        dialogInstance.setHeaderText("Измените необходимые поля");
 
         ButtonType commitAddingBtnType = new ButtonType("Сохранить", ButtonBar.ButtonData.APPLY);
         ButtonType cancelAddingBtnType = new ButtonType("Отмена", ButtonBar.ButtonData.CANCEL_CLOSE);
-        dialog.getDialogPane().getButtonTypes().addAll(commitAddingBtnType, cancelAddingBtnType);
+        dialogInstance.getDialogPane().getButtonTypes().addAll(commitAddingBtnType, cancelAddingBtnType);
 
         GridPane gridPane = new GridPane();
         gridPane.setHgap(10);
@@ -121,30 +125,35 @@ public class DialogManager {
             }
         });
 
-        dialog.setResultConverter(dialogButton -> {
+        dialogInstance.setResultConverter(dialogButton -> {
             if (dialogButton == commitAddingBtnType) {
+                String productNameStr = productName.getText().trim();
+                String productPriceStr = productPrice.getText().trim();
+                String receiptDateStr = receiptDate.getText().trim();
+
+                boolean isValid = isInputValid(productNameStr, productPriceStr, receiptDateStr, product.getCategory());
+
                 return new HashMap<>() {{
+                    put(VALIDATION_RESULT, String.valueOf(isValid));
                     put(PRODUCT_ID, String.valueOf(product.getId()).trim());
-                    put(PRODUCT_EDIT_NAME, productName.getText().trim());
-                    put(PRODUCT_EDIT_PRICE, productPrice.getText().trim());
-                    put(PRODUCT_EDIT_RECEIPT_DATE, receiptDate.getText().trim());
+                    put(PRODUCT_EDIT_NAME, productNameStr);
+                    put(PRODUCT_EDIT_PRICE, productPriceStr);
+                    put(PRODUCT_EDIT_RECEIPT_DATE, receiptDateStr);
                 }};
             }
             return null;
         });
 
-        dialog.getDialogPane().setContent(gridPane);
-        return dialog;
+        dialogInstance.getDialogPane().setContent(gridPane);
+        return dialogInstance;
     }
 
-//    private boolean isInputValid(String name, String price, String receiptDate, String category){
-//        boolean isValid = true;
-//        if(name.isEmpty() || price.isEmpty() ){
-//            return false;
-//        }else{
-//            for(int i = 0;i < receiptDate.length(); i++){
+//    public static Dialog<HashMap<String, String>> getDialogWithLastInvalidInput(){
 //
-//            }
-//        }
 //    }
+
+    private static boolean isInputValid(String name, String price, String receiptDate, String category) {
+        
+        return !name.isEmpty() && !price.isEmpty() && !category.isEmpty();
+    }
 }
